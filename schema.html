@@ -1,0 +1,82 @@
+<script type="text/javascript">
+    /*global RED*/
+    RED.nodes.registerType('json-schema', {
+        category: 'function',
+        inputs: 1,
+        outputs: 1,
+        color: "#debd5c",
+        icon: "function.png",
+        paletteLabel: "json schema",
+        defaults: {
+            name: {
+                value: ""
+            },
+            func: {
+                value: ""
+            }
+        },
+        label: function() {
+            return this.name || "JSON Schema";
+        },
+        oneditprepare: function() {
+            var that = this;
+            this.editor = RED.editor.createEditor({
+                id: 'node-input-func-editor',
+                mode: 'ace/mode/javascript',
+                value: $("#node-input-func").val()
+            });
+            RED.library.create({
+                url: "functions", // where to get the data from
+                type: "schema", // the type of object the library is for
+                editor: this.editor, // the field name the main text body goes to
+                mode: "ace/mode/javascript",
+                fields: ['name']
+            });
+            this.editor.focus();
+        },
+        oneditsave: function() {
+            var annot = this.editor.getSession().getAnnotations();
+            this.noerr = 0;
+            $("#node-input-noerr").val(0);
+            for (var k = 0; k < annot.length; k++) {
+                if (annot[k].type === "error") {
+                    $("#node-input-noerr").val(annot.length);
+                    this.noerr = annot.length;
+                }
+            }
+            $("#node-input-func").val(this.editor.getValue());
+            delete this.editor;
+        },
+        oneditresize: function(size) {
+            var rows = $("#dialog-form>div:not(.node-text-editor-row)");
+            var height = $("#dialog-form").height();
+            for (var i = 0; i < rows.size(); i++) {
+                height -= $(rows[i]).outerHeight(true);
+            }
+            var editorRow = $("#dialog-form>div.node-text-editor-row");
+            height -= (parseInt(editorRow.css("marginTop")) + parseInt(editorRow.css("marginBottom")));
+            $(".node-text-editor").css("height", height + "px");
+            this.editor.resize();
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="json-schema">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row" style="margin-bottom: 0px;">
+        <label for="node-input-func"><i class="fa fa-wrench"></i> JSON Schema</label>
+        <input type="hidden" id="node-input-func" autofocus="autofocus">
+        <input type="hidden" id="node-input-noerr">
+    </div>
+    <div class="form-row node-text-editor-row">
+        <div style="height: 250px;" class="node-text-editor" id="node-input-func-editor"></div>
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="json-schema">
+    <p>JSON Schema validator</p>
+    <p>Put your JSON Schema on editor and node will validate msg.payload. Error is returned on msg.error.</p>
+</script>
