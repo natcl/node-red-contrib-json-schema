@@ -6,17 +6,18 @@ module.exports = function(RED) {
         this.name = n.name;
         var node = this;
 
+        console.log(this);
+
         var Ajv = require('ajv');
         var ajv = Ajv({
             allErrors: true,
             messages: false
         });
         
-        console.log(node.func);
-        var validate = ajv.compile(JSON.parse(node.func));
-        
         node.on('input', function(msg) {
             if (msg.payload !== undefined) {
+                console.log(node.func);
+                var validate = ajv.compile(JSON.parse(node.func || msg.schema));
                 var valid = validate(msg.payload);
                 if (!valid) {
                     msg['error'] = validate.errors;
