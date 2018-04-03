@@ -20,7 +20,7 @@ module.exports = function(RED) {
                 var valid = validate(msg.payload);
                 if (!valid) {
                     msg['error'] = validate.errors;
-                    node.error('Invalid JSON', msg);
+                    node.error("Schema can't validate JSON", msg);
                 }
                 else {
                     node.send(msg);
